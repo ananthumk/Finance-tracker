@@ -4,7 +4,7 @@ import Transaction from "@/models/Transaction";
 import { NextRequest, NextResponse } from "next/server";
 
 //DELETE - Delete transaction
-export async function DELETE(req: NextRequest, {params} : {params: {id: string}}){
+export async function DELETE(req: NextRequest, {params} : {params: Promise<{id: string}>}){
    try {
       await connect()
 
