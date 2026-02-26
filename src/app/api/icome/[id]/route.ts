@@ -18,7 +18,7 @@ export async function DELETE(req: NextRequest, {params} : {params: Promise<{id: 
       const userId = decoded.userId || decoded.id 
       if(!userId) return NextResponse.json({message: 'Inavlid token payload'}, {status: 404})
 
-      const transactionId = params.id
+      const { id: transactionId } = await params  
       const result = await Transaction.findOneAndDelete({
         _id: transactionId,
         userId: userId,
@@ -49,7 +49,7 @@ export async function PUT(req: NextRequest, {params}: {params: Promise<{id: stri
       const userId = decoded.userId || decoded.id 
       if(!userId) return NextResponse.json({message: 'Inavlid token payload'}, {status: 400})
 
-      const {id: transactionId} = await params
+      const { id: transactionId } = await params  
       const body = await req.json()
 
       interface UpdateTransition {
@@ -60,7 +60,7 @@ export async function PUT(req: NextRequest, {params}: {params: Promise<{id: stri
         date?: string
       }
 
-      const {type,amount, category, note, date}: UpdateTransition = body 
+      const {type, amount, category, note, date}: UpdateTransition = body 
 
       const updateData: Partial<{
         type: string;
@@ -68,7 +68,7 @@ export async function PUT(req: NextRequest, {params}: {params: Promise<{id: stri
         category: string;
         note: string; 
         date: Date;
-      }>= {}
+      }> = {}
 
       if (type !== undefined) updateData.type = type 
       if (amount !== undefined) updateData.amount = typeof amount === "string" ? Number(amount) : amount 
