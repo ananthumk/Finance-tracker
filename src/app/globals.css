@@ -1,5 +1,36 @@
-@import "tailwindcss";
+ @import "tailwindcss";
 
+
+
+/* Loader - components/loader */
+.loader {
+  width: 120px;
+  height: 22px;
+  border-radius: 40px;
+  color: #514b82;
+  border: 2px solid;
+  margin: auto;
+  position: relative;
+}
+.loader::before {
+  content: "";
+  position: absolute;
+  margin: 2px;
+  width: 25%;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: inherit;
+  background: currentColor;
+  animation: l3 1s infinite linear;
+}
+@keyframes l3 {
+    50% {left:100%;transform: translateX(calc(-100% - 4px))}
+}
+
+/* ---------------------------------------------------------------- */
+
+/*
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -23,4 +54,4 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
-}
+} */
