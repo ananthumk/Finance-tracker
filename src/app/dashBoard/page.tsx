@@ -15,17 +15,35 @@ import { useToken } from "../context/UserContext"
 
 interface User {
     name: string
-    email?: string
+    email: string,
+    createdAt?: string,
+    familyId?: string 
+    role: string
+    _id: string
+    __v: number
+}
+
+interface UserResponse{
+    user: User
+}
+
+interface MonthYearId {
+    month: number
+    year: number
+}
+
+interface MonthResponse {
+    _id: MonthYearId
 }
 
 export default function DashBoard() {
     const [user, setUser] = useState<User | null>(null)
-    const [addTransaction, setAddTransaction] = useState(false)
-    const [editTranscation, setEditTransaction] = useState(false)
+    const [addTransaction, setAddTransaction] = useState<Boolean>(false)
+    const [editTranscation, setEditTransaction] = useState<Boolean>(false)
     const [errMsg, setErrMsg] = useState('')
-    const [updateId, setUpdatedId] = useState(null)
+    const [updateId, setUpdatedId] = useState<string | null>(null)
     const [updateDetails, setUpdatedDetails] = useState(null)
-    const [dates, setDates] = useState([])
+    const [dates, setDates] = useState<MonthResponse[]>([])
     
     const { token, month, year, setMonth, setYear } = useToken()
 
@@ -33,7 +51,7 @@ export default function DashBoard() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get<User>('/api/auth/me', {
+                const response = await axios.get<UserResponse>('/api/auth/me', {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
@@ -56,7 +74,7 @@ export default function DashBoard() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get('/api/month', {
+                const response = await axios.get<MonthResponse[]>('/api/month', {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
@@ -78,7 +96,7 @@ export default function DashBoard() {
     console.log(updateId, updateDetails)
 
 
-    const handleMonthDate = (date) => {
+    const handleMonthDate = (date: string) => {
         switch (date) {
             case "1":
                 return "January"

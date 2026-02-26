@@ -1,31 +1,24 @@
 "use client"
-import { PieChart, Pie, Tooltip, Cell, Legend } from 'recharts'
+import { PieChart, Pie, Cell } from 'recharts'
+import type { PieLabelRenderProps } from "recharts"
 import { BiSolidCircleThreeQuarter } from "react-icons/bi";
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useToken } from '../context/UserContext';
 import Loader from './Loader';
 
+interface Expense {
+    category: string
+    amount: number
+}
+
 interface DataPoint {
-    name: string;
-    value: number;
+    name: string
+    value: number
 }
 
-interface CustomLabelProps {
-    cx: number;
-    cy: number;
-    midAngle: number;
-    innerRadius: number;
-    outerRadius: number;
-    percent: number;
-}
-
-interface TooltipPayload {
-    payload: DataPoint;
-    name: string;
-    value: number;
-    dataKey: string;
-    color: string;
+interface ExpenseResponse {
+    expenses: Expense[]
 }
 
 const apiStatus = {
@@ -36,15 +29,15 @@ const apiStatus = {
 
 export default function CategoryGraph() {
 
-    const [ expenses, setExpense ] = useState<any[]>([])
-    const [ status, setStatus ] = useState<string>(apiStatus.loading)
+    const [expenses, setExpense] = useState<Expense[]>([])
+    const [status, setStatus] = useState<string>(apiStatus.loading)
 
-    const {token, year, month} = useToken()
+    const { token, year, month } = useToken()
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(`/api/transition/expense?month=${month}&year=${year}`, 
+                const response = await axios.get<ExpenseResponse>(`/api/transition/expense?month=${month}&year=${year}`,
                     { headers: { Authorization: `Bearer ${token}` } })
                 if (response.status === 200 || response.status === 201) {
                     console.log('success at category graph :', response)
@@ -60,27 +53,43 @@ export default function CategoryGraph() {
             }
         }
         fetchData()
-    }, [token, month])
+    }, [token, month, year])
 
-    const categoryValues = expenses.reduce((acc: Record<string, number>, item) => {
+    const categoryValues = expenses.reduce<Record<string, number>>((acc, item) => {
         acc[item.category] = (acc[item.category] || 0) + item.amount
         return acc
     }, {})
 
-    const data: DataPoint[] = Object.entries(categoryValues).map(([name, value]) => ({
+    const data = Object.entries(categoryValues).map(([name, value]) => ({
         name,
-        value
+        value: value as number
     }))
 
     const colors = ['#BF4F51', '#8A2BE2', '#FF0800', '#FDEE00', '#00FFBF', '#007FFF', '#2f3e46', '#5f0f40', '#6a994e', '#e29578',
         '#d8a48f', '#b08968', '#104911', '#e8f1f2', '#ff7b00'
     ]
 
-    const customizedLabels = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: CustomLabelProps) => {
+    const customizedLabels = (props: PieLabelRenderProps) => {
+
+        const { cx, cy, midAngle, innerRadius, outerRadius, percent } = props
+
+        if (
+            cx === undefined || cy === undefined || midAngle === undefined || innerRadius === undefined ||
+            outerRadius === undefined || percent === undefined
+        ) {
+            return null
+        }
+
+        const cxNum = Number(cx)
+        const cyNum = Number(cy)
+        const innerR = Number(innerRadius)
+        const outerR = Number(outerRadius)
+        const angle = Number(midAngle)
+
         const RADIAN = Math.PI / 180
-        const radius = innerRadius + (outerRadius - innerRadius) * 0.5
-        const x = cx + radius * Math.cos(-midAngle * RADIAN)
-        const y = cy + radius * Math.sin(-midAngle * RADIAN)
+        const radius = innerR + (outerR - innerR) * 0.5
+        const x = cxNum + radius * Math.cos(-angle * RADIAN)
+        const y = cyNum + radius * Math.sin(-angle * RADIAN)
 
         return (
             <text
@@ -90,12 +99,12 @@ export default function CategoryGraph() {
                 textAnchor='middle'
                 dominantBaseline='central'
                 fontSize={14}
-                fontWeight="bold">{`${(percent * 100).toFixed(0)}%`}</text>
+                fontWeight="bold">{`${(Number(percent) * 100).toFixed(0)}%`}</text>
         )
     }
 
     const renderError = () => {
-        return(
+        return (
             <div className='h-full w-full flex flex-col justify-center gap-2 items-center'>
                 <p className='text-center text-lg text-gray-800 font-semibold'>Failed to Load data. Try again later.</p>
                 <button className='ml-4 px-4 py-2 cursor-pointer bg-blue-500 text-white rounded hover:bg-blue-600'>Retry</button>
@@ -144,7 +153,7 @@ export default function CategoryGraph() {
                         }}
                     />
                         <Legend /> */}
-                
+
                 </PieChart>
                 <div className='grid grid-cols-1 mx-auto md:grid-cols-2 gap-3 md:gap-5'>
                     {Object.entries(categoryValues).map(([category, amount], i) => (
@@ -159,7 +168,7 @@ export default function CategoryGraph() {
                 </div>
             </>}
             {status === apiStatus.error && renderError()}
-            
+
         </div>
     )
 }

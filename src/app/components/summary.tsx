@@ -4,11 +4,18 @@ import axios from "axios"
 import { useEffect, useState } from "react"
 import { useToken } from "../context/UserContext"
 
-interface Summary{
-    totalExpense: number,
-    totalIncome: number,
-    budgetLimit: number,
-    balance: number
+interface Summary {
+  balance: number
+  budgetLimit: number
+  month: string
+  percentageUsed: number
+  remaining: number
+  totalExpense: number
+  totalIncome: number
+}
+
+interface SummaryResponse {
+  summary: Summary
 }
 
 export default function Summary(){
@@ -20,9 +27,9 @@ export default function Summary(){
         const fetchData = async () => {
             try {
                 
-                const response = await axios.get<Summary>(`/api/budget/summary?month=${month}&year=${year}`, {headers: {Authorization: `Bearer ${token}`}})
+                const response = await axios.get<SummaryResponse>(`/api/budget/summary?month=${month}&year=${year}`, {headers: {Authorization: `Bearer ${token}`}})
                 if(response.status === 200 || response.status === 201){
-                     setSummary(response.data.summary || response.data)
+                     setSummary(response.data.summary)
                      console.log('Fetch Summary success: ', response.data)
                 }else{
                     console.log('Failed to summary: ', response.data)

@@ -30,8 +30,17 @@ const expense_category = [
     "Other"
 ]
 
-export default function UpdateTransaction({ updateDetails, updateId, setEditTransaction }) {
-    const [details, setDetails] = useState(null)
+interface TransactionDetails {
+    type: string;
+    amount: number;
+    category: string; 
+    note: string;
+    date: string;
+}
+
+export default function UpdateTransaction({ updateDetails, updateId, setEditTransaction }: 
+    { updateDetails: any, updateId: any, setEditTransaction: (value: boolean) => void }) {
+    const [details, setDetails] = useState<TransactionDetails | null>(null)
     const [errMsg, setErrMsg] = useState('')
     const [successMsg, setSuccessMsg] = useState('')
 

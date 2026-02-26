@@ -13,12 +13,38 @@ import axios from "axios";
 import { useToken } from "../context/UserContext";
 import { X, Plus } from 'lucide-react';
 
+interface User {
+  name: string;
+  email: string;
+  password: string;
+}
+
+interface Summary {
+  balance: number;
+  budgetLimit: number;
+  month: string;
+  percentageUsed: number;
+  remaining: number;
+  totalExpense: number;
+  totalIncome: number;
+}
+
+interface BudgetInfo {
+  categories: string[];
+  totalLimit: number;
+  month: string;
+  userId: string;
+  _id: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export default function ProfilePage() {
-  const [user, setUser] = useState({});
-  const [userInfo, setUserInfo] = useState({ name: '', email: '', password: '' });
-  const [budgetInfo, setBudgetInfo] = useState({});
-  const [expense, setExpense] = useState({});
-  const [editName, setEditName] = useState(false); // ✅ FIXED: Removed Boolean wrapper
+  const [user, setUser] = useState<User | null>(null);
+  const [userInfo, setUserInfo] = useState<User>({ name: '', email: '', password: '' });
+  const [budgetInfo, setBudgetInfo] = useState<BudgetInfo | null>(null);
+  const [expense, setExpense] = useState<Summary | null>(null);
+  const [editName, setEditName] = useState(false);
   const [editEmail, setEditEmail] = useState(false);
   const [editPassword, setEditPassword] = useState(false);
   const [editBudgetLimit, setEditBudgetLimit] = useState(false);
@@ -35,7 +61,7 @@ export default function ProfilePage() {
     router.push('/dashBoard');
   };
 
-  // ✅ FIXED: Initialize userInfo when user data loads
+
   useEffect(() => {
     if (user?.name && user?.email) {
       setUserInfo({ name: user.name, email: user.email, password: '' });
@@ -58,7 +84,7 @@ export default function ProfilePage() {
         console.log('Error at fetch user in profile: ', error);
       }
     };
-    if (token) fetchData(); // ✅ FIXED: Added token check
+    if (token) fetchData();
   }, [token]);
 
   useEffect(() => {
@@ -77,7 +103,7 @@ export default function ProfilePage() {
         console.log('Error at fetching budget: ', e.message);
       }
     };
-    if (token && month && year) fetchBudget(); // ✅ FIXED: Added dependency checks
+    if (token && month && year) fetchBudget();
   }, [token, month, year]);
 
   useEffect(() => {
@@ -87,7 +113,7 @@ export default function ProfilePage() {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (response.status === 200 || response.status === 201) {
-          console.log(response);
+          console.log('budget summary: ', response);
           setExpense(response.data.summary);
         } else {
           console.log('Failed on fetching expense: ', response.data);
@@ -96,7 +122,7 @@ export default function ProfilePage() {
         console.log(`Error while fetching Expense: `, error.message);
       }
     };
-    if (token && month && year) fetchExpense(); // ✅ FIXED: Added dependency checks
+    if (token && month && year) fetchExpense();
   }, [token, month, year]);
 
   const handletoggle = (value: string) => {
@@ -111,15 +137,15 @@ export default function ProfilePage() {
     }
   };
 
-  // ✅ FIXED: Correct axios.put syntax and proper error handling
+
   const updateUserInfo = async () => {
     try {
-      const response = await axios.put('/api/auth/me', userInfo, { // ✅ FIXED: Correct param order
+      const response = await axios.put('/api/auth/me', userInfo, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.status === 200 || response.status === 201) {
         console.log('Success at updating user: ', response);
-        setUser({ ...user, ...userInfo }); // ✅ FIXED: Update local user state
+        setUser({ ...user, ...userInfo });
         setEditName(false);
         setEditEmail(false);
         setEditPassword(false);
@@ -131,17 +157,16 @@ export default function ProfilePage() {
     }
   };
 
-  // ✅ FIXED: Correct axios.put syntax
+
   const updateBudgetLimit = async (e: any) => {
     e.preventDefault();
     try {
-      const response = await axios.put('/api/budget/limit', budgetDetails, { // ✅ FIXED: Correct param order
+      const response = await axios.put('/api/budget/limit', budgetDetails, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.status === 200 || response.status === 201) {
         console.log('Success at update budget limit: ', response);
-        setEditBudgetLimit(false); // ✅ FIXED: Close edit mode on success
-        // Refetch budget data to update UI
+        setEditBudgetLimit(false);
         setTimeout(() => window.location.reload(), 500);
       }
     } catch (error: any) {
@@ -150,15 +175,14 @@ export default function ProfilePage() {
   };
 
   const handleMonthDate = (d: number) => {
-    const date = String(d);
     const months = [
       "January", "February", "March", "April", "May", "June",
       "July", "August", "September", "October", "November", "December"
     ];
-    return months[parseInt(date) - 1] || ""; // ✅ FIXED: Cleaner month mapping
+    return months[d - 1] || "";
   };
 
-  // ✅ FIXED: Correct percentage calculation
+  // percentage calculation
   const totalExpense = expense?.totalExpense || 0;
   const totalLimit = budgetInfo?.totalLimit || 0;
   const percentage = totalLimit ? Math.min((totalExpense * 100) / totalLimit, 100) : 0;
@@ -178,8 +202,8 @@ export default function ProfilePage() {
       ...prev
     }))
   }
-  
-  const handlePostLimit = async (e:any) => {
+
+  const handlePostLimit = async (e: any) => {
     e.preventDefault()
     try {
       const response = await axios.post(`/api/budget/limit`, limitDetails, {
@@ -187,10 +211,10 @@ export default function ProfilePage() {
           Authorization: `Bearer ${token}`
         }
       })
-      if(response.status === 201){
+      if (response.status === 201) {
         setAddLimit(false)
-      } 
-      else if (response.status === 409){
+      }
+      else if (response.status === 409) {
         console.log(response.data.message)
       }
     } catch (error) {
@@ -258,8 +282,8 @@ export default function ProfilePage() {
 
           {/* User Info */}
           <div className="text-center">
-            <h2 className="text-lg font-semibold text-gray-800">{user.name || 'Loading...'}</h2>
-            <p className="text-sm text-gray-600 font-medium">{user.email || 'Loading...'}</p>
+            <h2 className="text-lg font-semibold text-gray-800">{user?.name || 'Loading...'}</h2>
+            <p className="text-sm text-gray-600 font-medium">{user?.email || 'Loading...'}</p>
           </div>
         </div>
 
@@ -284,8 +308,8 @@ export default function ProfilePage() {
                   <input
                     onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
                     className="py-2 px-4 text-md font-medium text-gray-500 w-full rounded bg-white border border-blue-400"
-                    placeholder={user.name}
-                    value={userInfo.name} // ✅ FIXED: Use userInfo.name instead of user.name
+                    placeholder={user?.name}
+                    value={userInfo?.name}
                   />
                   <div onClick={() => setEditName(false)} className="w-8 h-8 flex justify-center items-center bg-[#9c0b0b] rounded cursor-pointer hover:bg-[#630404]">
                     <X className="w-4 h-4 text-white" />
@@ -296,7 +320,7 @@ export default function ProfilePage() {
                 </div>
               ) : (
                 <div className="flex justify-between py-2 px-4 bg-gradient-to-r from-neutral-100 rounded to-blue-100">
-                  <p className="text-md font-medium text-gray-400">{user.name || 'Loading...'}</p>
+                  <p className="text-md font-medium text-gray-400">{user?.name || 'Loading...'}</p>
                   <div className="w-8 h-8 rounded shadow bg-white flex items-center justify-center cursor-pointer hover:bg-gray-50">
                     <RiEdit2Fill onClick={() => handletoggle('name')} className="w-5 h-5 text-gray-400" />
                   </div>
@@ -315,8 +339,8 @@ export default function ProfilePage() {
                   <input
                     onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
                     className="py-2 px-4 text-md font-medium text-gray-500 w-full rounded bg-white border border-blue-400"
-                    placeholder={user.email}
-                    value={userInfo.email} // ✅ FIXED: Use userInfo.email
+                    placeholder={user?.email}
+                    value={userInfo.email}
                   />
                   <div onClick={() => setEditEmail(false)} className="w-8 h-8 flex justify-center items-center bg-[#9c0b0b] rounded cursor-pointer hover:bg-[#630404]">
                     <X className="w-4 h-4 text-white" />
@@ -327,7 +351,7 @@ export default function ProfilePage() {
                 </div>
               ) : (
                 <div className="flex justify-between py-2 px-4 bg-gradient-to-r from-neutral-100 rounded to-blue-100">
-                  <p className="text-md font-medium text-gray-400">{user.email || 'Loading...'}</p>
+                  <p className="text-md font-medium text-gray-400">{user?.email || 'Loading...'}</p>
                   <div className="w-8 h-8 rounded shadow bg-white flex items-center justify-center cursor-pointer hover:bg-gray-50">
                     <RiEdit2Fill onClick={() => handletoggle('email')} className="w-5 h-5 text-gray-400" />
                   </div>
@@ -391,7 +415,7 @@ export default function ProfilePage() {
                   <p className="text-sm font-medium">Current Monthly Limit</p>
                   <p className="text-[12px] flex items-center gap-1">
                     <FaCalendarAlt className="w-3 h-3 text-green-500" />
-                    {handleMonthDate(month)} {year}
+                    {handleMonthDate(month ?? 0)} {year}
                   </p>
                 </div>
                 <div className="flex flex-col text-end gap-1">
@@ -479,7 +503,7 @@ export default function ProfilePage() {
                     <FaCalendarCheck className="w-4 h-4 text-blue-600" />
                     <p className="text-[12px] font-medium">Selected Month</p>
                   </div>
-                  <h2 className="text-md mt-1 font-semibold">{handleMonthDate(month)} {year}</h2>
+                  <h2 className="text-md mt-1 font-semibold">{month ? handleMonthDate(month) : ''} {year}</h2>
                 </div>
                 <div className="w-full py-2 px-3 bg-blue-200 rounded">
                   <div className="flex items-center gap-2">

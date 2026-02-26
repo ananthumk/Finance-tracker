@@ -37,7 +37,7 @@ const expense_category = [
    "Other"
 ]
 
-export default function AddTransaction({ setAddTransaction }) {
+export default function AddTransaction({ setAddTransaction }: { setAddTransaction: (value: boolean) => void }) {
 
    const [info, setInfo] = useState<INfo>({
       type: 'expense',

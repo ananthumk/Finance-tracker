@@ -22,26 +22,54 @@ const apiStatus = {
 }
 
 const colors = [
-  "#FF6B6B", // Coral Red
-  "#4ECDC4", // Teal Blue  
-  "#45B7D1", // Sky Blue
-  "#96CEB4", // Mint Green
-  "#FFEAA7", // Soft Yellow
-  "#DDA0DD", // Plum Purple
-  "#98D8C8", // Seafoam
-  "#F7DC6F", // Golden Yellow
-  "#BB8FCE", // Lavender
-  "#F8C471", // Sandy Orange
-  "#82CCDD", // Ice Blue
-  "#F1948A"  // Peach Red
+  "#FF6B6B", 
+  "#4ECDC4", 
+  "#45B7D1", 
+  "#96CEB4", 
+  "#FFEAA7", 
+  "#DDA0DD", 
+  "#98D8C8", 
+  "#F7DC6F", 
+  "#BB8FCE", 
+  "#F8C471", 
+  "#82CCDD", 
+  "#F1948A" 
 ];
 
-export default function Transaction({ setAddTransaction, setUpdatedId, setUpdatedDetails, setEditTransaction }) {
-  const [transaction, setTransaction] = useState([])
-  const [openSettingsId, setOpenSettingsId] = useState(null)
+interface Transaction {
+  _id: string;
+  userId: string;
+  familyId: string | null;
+  type: 'income' | 'expense';
+  amount: number;
+  category: string;
+  note: string;
+  date: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Pagination {
+  totalItems: number
+  currentPage: number
+  totalPages: number
+  itemsPerPage: number
+  itemsRetrieved: number
+  text: string
+}
+
+interface TransactionResponse {
+  transactions: Transaction[];
+  pagination: Pagination;
+}
+
+export default function Transaction({ setAddTransaction, setUpdatedId, setUpdatedDetails, setEditTransaction }: 
+  { setAddTransaction: (value: boolean) => void, setUpdatedId: (id: string) => void, setUpdatedDetails: (details: any) => void, setEditTransaction: (value: boolean) => void }) {
+  const [transaction, setTransaction] = useState<Transaction[]>([])
+  const [openSettingsId, setOpenSettingsId] = useState<string | null>(null)
   const [status, setStatus] = useState(apiStatus.loading)
   const [page, setPage] = useState(1)
-  const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState<Pagination>({
     totalItems: 0,
     currentPage: 0,
     totalPages: 0,
@@ -50,22 +78,24 @@ export default function Transaction({ setAddTransaction, setUpdatedId, setUpdate
     text: "0 out of 0"
   })
   const [type, setType] = useState('')
-  const [filterTransaction, setFilterTransaction] = useState([])
+  const [filterTransaction, setFilterTransaction] = useState<Transaction[]>([])
   const [searchValue, setSearchValue] = useState('')
   const { token, year, month } = useToken()
 
   const fetchData = async () => {
     try {
       setStatus(apiStatus.loading)
-      const response = await axios.get(`/api/icome/all?month=${month}&year=${year}&page=${page}`, {
+      const response = await axios.get<TransactionResponse>(`/api/icome/all?month=${month}&year=${year}&page=${page}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       console.log(response)
       if (response.status === 200 || response.status === 201) {
+        console.log('response: ', response.data)
         const updatedTransactions = response.data.transactions.map((t: any) => ({
           ...t,
           settings: false
         }))
+        console.log('update transcation: ', updatedTransactions)
         setTransaction(updatedTransactions)
         setPagination(response.data.pagination)
         setStatus(apiStatus.success)
@@ -115,7 +145,7 @@ export default function Transaction({ setAddTransaction, setUpdatedId, setUpdate
 
   const handleDeleteTransaction = async (id: string) => {
     try {
-      const response = await axios.delete(`/api/income/${id}`, {
+      const response = await axios.delete(`/api/icome/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (response.status === 200 || response.status === 201) {
