@@ -71,7 +71,7 @@ export async function PUT(req: NextRequest) {
     if (name) updatedData.name = name;
     if (password) updatedData.password = await bcrypt.hash(password, 10);
 
-    // ✅ Correct Mongoose syntax — must pass (id, data, options)
+    // Correct Mongoose syntax — must pass (id, data, options)
     const user = await User.findByIdAndUpdate(
       userId,
       { $set: updatedData },

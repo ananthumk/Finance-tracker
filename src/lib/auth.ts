@@ -2,13 +2,21 @@ import { NextApiRequest } from "next";
 import jwt from 'jsonwebtoken'
 
 export function signToken(payload: object){
-    return jwt.sign(payload, process.env.JWT_SECRET_TOKEN , {expiresIn: '7d'})
+    const secret = process.env.JWT_SECRET_TOKEN
+    if(!secret){
+        throw new Error('JWT_SECRET_TOKEN is not defined')
+    }
+    return jwt.sign(payload, secret , {expiresIn: '7d'})
 }
 
 export function verifyToken(token?: string) {
     if (!token) return null
     try {
-        return jwt.verify(token, process.env.JWT_SECRET_TOKEN) as any
+        const secret =  process.env.JWT_SECRET_TOKEN
+        if (!secret){
+            throw new Error('JWT_SECRET_TOKEN is not defined')
+        }
+        return jwt.verify(token, secret) as any
     } catch (error) {
         return null
     }

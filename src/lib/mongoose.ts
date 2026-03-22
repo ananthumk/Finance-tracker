@@ -27,4 +27,4 @@ async function connect() {
 }
 
 export default connect;
-export { mongoose }; // ✅ optional but useful
+export { mongoose }; 
