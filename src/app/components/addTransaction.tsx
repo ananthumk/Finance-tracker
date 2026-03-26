@@ -37,7 +37,7 @@ const expense_category = [
    "Other"
 ]
 
-export default function AddTransaction({ setAddTransaction }: { setAddTransaction: (value: boolean) => void }) {
+export default function AddTransaction({ hasChange, setAddTransaction }: { hasChange: React.Dispatch<React.SetStateAction<number>>, setAddTransaction: (value: boolean) => void }) {
 
    const [info, setInfo] = useState<INfo>({
       type: 'expense',
@@ -79,6 +79,7 @@ export default function AddTransaction({ setAddTransaction }: { setAddTransactio
             setTimeout(() => {
                setAddTransaction(false)
             }, 2000)
+            hasChange(prev => prev + 1)
          } else {
             setErrMsg(response.data.message)
             setSuccessMsg('')

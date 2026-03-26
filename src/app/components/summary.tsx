@@ -18,10 +18,10 @@ interface SummaryResponse {
   summary: Summary
 }
 
-export default function Summary(){
+export default function Summary({change}: {change: number}) {
     const [summary, setSummary] = useState<Summary | null>(null)
     const {token, year, month} = useToken()
-    console.log(month)
+    console.log(month, year)
     // const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
     useEffect(() => {
         const fetchData = async () => {
@@ -39,7 +39,7 @@ export default function Summary(){
             }
         }
         fetchData()
-    }, [token,month])
+    }, [token, month, year, change])
     return(
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center">
             <div className="bg-white p-4 rounded shadow-md">

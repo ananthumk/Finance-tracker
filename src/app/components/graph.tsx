@@ -13,10 +13,10 @@ const apiStatus = {
     error: 'error'
 }
 
-export default function Graph() {
+export default function Graph({change}: {change: number}) {
     const [expenses, setExpenses] = useState<any[]>([])
     const [status, setStatus] = useState<string>(apiStatus.loading)
-    const { token } = useToken()
+    const { token, month, year } = useToken()
 
     useEffect(() => {
         if (!token) return
@@ -41,7 +41,7 @@ export default function Graph() {
         }
 
         fetchData()
-    }, [token])
+    }, [token, change, month, year])
 
     const renderError = () => {
         return (
@@ -54,7 +54,7 @@ export default function Graph() {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <CategoryGraph />
+            <CategoryGraph change={change} />
             <div className="w-full py-4 px-2 md:p-4 flex flex-col gap-4 bg-white rounded min-h-[200px]">
                 <div className="flex items-center gap-3">
                     <FaArrowTrendUp className="w-6 h-6 text-green-700" />

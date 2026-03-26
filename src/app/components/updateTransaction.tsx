@@ -38,8 +38,8 @@ interface TransactionDetails {
     date: string;
 }
 
-export default function UpdateTransaction({ updateDetails, updateId, setEditTransaction }: 
-    { updateDetails: any, updateId: any, setEditTransaction: (value: boolean) => void }) {
+export default function UpdateTransaction({ hasChange, updateDetails, updateId, setEditTransaction }: 
+    { hasChange: React.Dispatch<React.SetStateAction<number>>, updateDetails: any, updateId: any, setEditTransaction: (value: boolean) => void }) {
     const [details, setDetails] = useState<TransactionDetails | null>(null)
     const [errMsg, setErrMsg] = useState('')
     const [successMsg, setSuccessMsg] = useState('')
@@ -73,6 +73,7 @@ export default function UpdateTransaction({ updateDetails, updateId, setEditTran
                 setTimeout(() => {
                     setEditTransaction(false)
                 }, 2000);
+                hasChange(prev => prev + 1)
             } else {
                 setErrMsg(response.data.message)
                 setSuccessMsg('')

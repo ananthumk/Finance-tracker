@@ -27,7 +27,7 @@ const apiStatus = {
     error: 'error'
 }
 
-export default function CategoryGraph() {
+export default function CategoryGraph({change}: {change: number}) {
 
     const [expenses, setExpense] = useState<Expense[]>([])
     const [status, setStatus] = useState<string>(apiStatus.loading)
@@ -53,7 +53,7 @@ export default function CategoryGraph() {
             }
         }
         fetchData()
-    }, [token, month, year])
+    }, [token, month, year, change])
 
     const categoryValues = expenses.reduce<Record<string, number>>((acc, item) => {
         acc[item.category] = (acc[item.category] || 0) + item.amount

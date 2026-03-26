@@ -11,19 +11,19 @@ import AddTransaction from "../components/addTransaction"
 import { IoCloseSharp } from "react-icons/io5";
 import UpdateTransaction from "../components/updateTransaction"
 import { useToken } from "../context/UserContext"
-
+import NotTransaction from '../components/notTransaction'
 
 interface User {
     name: string
     email: string,
     createdAt?: string,
-    familyId?: string 
+    familyId?: string
     role: string
     _id: string
     __v: number
 }
 
-interface UserResponse{
+interface UserResponse {
     user: User
 }
 
@@ -44,7 +44,9 @@ export default function DashBoard() {
     const [updateId, setUpdatedId] = useState<string | null>(null)
     const [updateDetails, setUpdatedDetails] = useState(null)
     const [dates, setDates] = useState<MonthResponse[]>([])
-    
+    const [hasTransaction, setHasTransaction] = useState<Boolean | null>(null)
+    const [change, hasChange] = useState(0)
+
     const { token, month, year, setMonth, setYear } = useToken()
 
 
@@ -92,6 +94,10 @@ export default function DashBoard() {
 
         fetchData()
     }, [token])
+
+    useEffect(() => {
+        setHasTransaction(null)
+    }, [month, year])
 
     console.log(updateId, updateDetails)
 
@@ -158,9 +164,21 @@ export default function DashBoard() {
                         )}
 
                     </div>
-                    <Summary />
-                    <Graph />
-                    <Transaction  setAddTransaction={setAddTransaction} setUpdatedId={setUpdatedId} setUpdatedDetails={setUpdatedDetails} setEditTransaction={setEditTransaction} />
+                    <Summary change={change} />
+                    {hasTransaction === false && <NotTransaction setAddTransaction={setAddTransaction} />}
+
+                    {hasTransaction !== false &&
+                        <>
+                            <Graph change={change} />
+                            <Transaction
+                                setAddTransaction={setAddTransaction}
+                                setUpdatedId={setUpdatedId}
+                                setUpdatedDetails={setUpdatedDetails}
+                                setEditTransaction={setEditTransaction}
+                                onDataLoaded={setHasTransaction}
+                                hasChange={hasChange}
+                                change={change} />
+                        </>}
                 </div>
                 <div style={{ zIndex: 1000 }} onClick={() => {
                     setAddTransaction(prev => !prev)
@@ -169,8 +187,8 @@ export default function DashBoard() {
                 </div>
 
             </div>
-            {addTransaction && <AddTransaction setAddTransaction={setAddTransaction} />}
-            {editTranscation && <UpdateTransaction updateDetails={updateDetails} updateId={updateId} setEditTransaction={setEditTransaction} />}
+            {addTransaction && <AddTransaction hasChange={hasChange} setAddTransaction={setAddTransaction} />}
+            {editTranscation && <UpdateTransaction hasChange={hasChange} updateDetails={updateDetails} updateId={updateId} setEditTransaction={setEditTransaction} />}
         </>
     )
 }

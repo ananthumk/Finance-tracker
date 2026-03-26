@@ -63,8 +63,11 @@ interface TransactionResponse {
   pagination: Pagination;
 }
 
-export default function Transaction({ setAddTransaction, setUpdatedId, setUpdatedDetails, setEditTransaction }: 
-  { setAddTransaction: (value: boolean) => void, setUpdatedId: (id: string) => void, setUpdatedDetails: (details: any) => void, setEditTransaction: (value: boolean) => void }) {
+export default function Transaction({ setAddTransaction, setUpdatedId, setUpdatedDetails, setEditTransaction, onDataLoaded,
+   hasChange, change }: 
+  { setAddTransaction: (value: boolean) => void, setUpdatedId: (id: string) => void, setUpdatedDetails: (details: any) => void,
+    setEditTransaction: (value: boolean) => void, onDataLoaded: (hasTransaction: boolean) => void,
+     hasChange: React.Dispatch<React.SetStateAction<number>>, change: number }) {
   const [transaction, setTransaction] = useState<Transaction[]>([])
   const [openSettingsId, setOpenSettingsId] = useState<string | null>(null)
   const [status, setStatus] = useState(apiStatus.loading)
@@ -99,6 +102,7 @@ export default function Transaction({ setAddTransaction, setUpdatedId, setUpdate
         setTransaction(updatedTransactions)
         setPagination(response.data.pagination)
         setStatus(apiStatus.success)
+        onDataLoaded(response.data.pagination.totalItems > 0)
       } else {
         setStatus(apiStatus.error)
         console.log(response)
@@ -112,7 +116,7 @@ export default function Transaction({ setAddTransaction, setUpdatedId, setUpdate
   useEffect(() => {
     if (!token) return
     fetchData()
-  }, [token, month, page, year])
+  }, [token, month, page, year, change])
 
   useEffect(() => {
     const filtered = transaction.filter((item: any) =>
@@ -120,7 +124,7 @@ export default function Transaction({ setAddTransaction, setUpdatedId, setUpdate
       item.type.toLowerCase().includes(type.toLowerCase())
     )
     setFilterTransaction(filtered)
-  }, [type, transaction, searchValue])
+  }, [type, transaction, searchValue, change])
 
   const renderIcon = (category: string) => {
     switch (category) {
@@ -151,6 +155,7 @@ export default function Transaction({ setAddTransaction, setUpdatedId, setUpdate
       if (response.status === 200 || response.status === 201) {
         toast.success("Transaction deleted successfully")
         setTransaction(prev => prev.filter(t => t._id !== id))
+        hasChange(prev => prev + 1)
       } else {
         toast.error("Failed to delete the transaction")
       }
