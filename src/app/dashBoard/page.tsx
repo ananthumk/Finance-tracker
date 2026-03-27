@@ -12,6 +12,7 @@ import { IoCloseSharp } from "react-icons/io5";
 import UpdateTransaction from "../components/updateTransaction"
 import { useToken } from "../context/UserContext"
 import NotTransaction from '../components/notTransaction'
+import ProtectedRoute from "../components/ProtectedRoute"
 
 interface User {
     name: string
@@ -36,7 +37,7 @@ interface MonthResponse {
     _id: MonthYearId
 }
 
-export default function DashBoard() {
+function DashBoardContent() {
     const [user, setUser] = useState<User | null>(null)
     const [addTransaction, setAddTransaction] = useState<Boolean>(false)
     const [editTranscation, setEditTransaction] = useState<Boolean>(false)
@@ -190,5 +191,13 @@ export default function DashBoard() {
             {addTransaction && <AddTransaction hasChange={hasChange} setAddTransaction={setAddTransaction} />}
             {editTranscation && <UpdateTransaction hasChange={hasChange} updateDetails={updateDetails} updateId={updateId} setEditTransaction={setEditTransaction} />}
         </>
+    )
+}
+
+export default function DashBoard() {
+    return (
+        <ProtectedRoute>
+            <DashBoardContent />
+        </ProtectedRoute>
     )
 }

@@ -119,7 +119,7 @@ export default function CategoryGraph({change}: {change: number}) {
             </div>
             {status === apiStatus.loading && <Loader />}
             {status === apiStatus.success && data.length === 0 && (
-                <p className='text-center my-10'>No expense data available for this month.</p>
+                <p className='text-center my-auto text-lg font-semibold'>No expense data available for this month.</p>
             )}
             {status === apiStatus.success && data.length > 0 && <>
                 <PieChart className='self-center' width={250} height={250}>

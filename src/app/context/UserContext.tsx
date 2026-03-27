@@ -8,36 +8,66 @@ interface AppContextType {
   setMonth: (month: number | null) => void;
   year: number | null;
   setYear: (year: number | null) => void;
+  isLoading: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+function syncTokenToCookie(token: string | null){
+  if (token) {
+    document.cookie = `token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`; 
+  } else {
+    document.cookie = `token=; path=/; max-age=0; SameSite=Lax`;
+  }
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(null);
-  const [month, setMonth] = useState<number | null>(9);
-  const [year, setYear] = useState<number | null>(2025);
+  const [token, setIsToken] = useState<string | null>(null);
+  const [month, setIsMonth] = useState<number | null>(9);
+  const [year, setIsYear] = useState<number | null>(2025);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
-    if (storedToken) setToken(storedToken);
-
     const storedMonth = localStorage.getItem("month");
-    if (storedMonth) setMonth(Number(storedMonth));
-
     const storedYear = localStorage.getItem("year");
-    if (storedYear) setYear(Number(storedYear));
+
+    const now = new Date()
+
+    if(storedToken){
+      setIsToken(storedToken)
+      syncTokenToCookie(storedToken)
+    }
+
+    setIsMonth(storedMonth ? parseInt(storedMonth) : now.getMonth() + 1);
+    setIsYear(storedYear ? parseInt(storedYear) : now.getFullYear());
+
+    setIsLoading(false);
   }, []);
+  
+  const setToken = (newToken: string | null) => {
+    setIsToken(newToken);
+    if(newToken){
+      localStorage.setItem("token", newToken);
+    } else {
+      localStorage.removeItem("token");
+    }
 
-  useEffect(() => {
-    if (month !== null) localStorage.setItem("month", String(month));
-  }, [month]);
+    syncTokenToCookie(newToken)
+  }
 
-  useEffect(() => {
-    if (year !== null) localStorage.setItem("year", String(year));
-  }, [year]);
+  const setMonth = (newMonth: number | null) => {
+    setIsMonth(newMonth);
+    if (newMonth !== null) localStorage.setItem("month", String(newMonth))
+  }
+
+  const setYear = (newYear: number | null) => {
+    setIsYear(newYear);
+    if (newYear !== null) localStorage.setItem("year", String(newYear))
+  }
 
   return (
-    <AppContext.Provider value={{ token, setToken, month, setMonth, year, setYear }}>
+    <AppContext.Provider value={{ token, setToken, month, setMonth, year, setYear, isLoading }}>
       {children}
     </AppContext.Provider>
   );

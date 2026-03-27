@@ -39,6 +39,14 @@ interface BudgetInfo {
   updatedAt: string;
 }
 
+type BudgetDetails = {
+  month: string;
+  year: string;
+  limit: string;
+};
+
+
+
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [userInfo, setUserInfo] = useState<User>({ name: '', email: '', password: '' });
@@ -48,20 +56,25 @@ export default function ProfilePage() {
   const [editEmail, setEditEmail] = useState(false);
   const [editPassword, setEditPassword] = useState(false);
   const [editBudgetLimit, setEditBudgetLimit] = useState(false);
+  const [refresh, setRefresh] = useState(0)
 
   const [addLimit, setAddLimit] = useState<boolean>(false)
 
   const router = useRouter();
   const { token, month, year } = useToken();
-  const [budgetDetails, setBudgetDetails] = useState({ month: month, limit: '', year: year });
+  const [budgetDetails, setBudgetDetails] = useState<BudgetDetails>({ month: '', limit: '', year: '' });
 
-  const [limitDetails, setLimitDetails] = useState({ month: '', year: '', limit: '' })
+  const [limitDetails, setLimitDetails] = useState<BudgetDetails>({ month: '', year: '', limit: '' });
 
   const backToDashBoard = () => {
-    router.push('/dashBoard');
+    router.replace('/dashBoard');
   };
 
-
+  useEffect(() => {
+    if(!month || !year) return 
+    setBudgetDetails({ month: String(month), year: String(year) , limit: '' });
+  }, [month, year]);
+  
   useEffect(() => {
     if (user?.name && user?.email) {
       setUserInfo({ name: user.name, email: user.email, password: '' });
@@ -69,6 +82,7 @@ export default function ProfilePage() {
   }, [user]);
 
   useEffect(() => {
+    if (!token) return
     const fetchData = async () => {
       try {
         const response = await axios.get('/api/auth/me', {
@@ -85,9 +99,11 @@ export default function ProfilePage() {
       }
     };
     if (token) fetchData();
-  }, [token]);
+  }, [token, refresh]);
 
   useEffect(() => {
+    if (!token || !month || !year) return;
+
     const fetchBudget = async () => {
       try {
         const response = await axios.get(`/api/budget/limit?month=${month}&year=${year}`, {
@@ -100,13 +116,15 @@ export default function ProfilePage() {
           console.log('Failed at fetching budget: ', response.data);
         }
       } catch (e: any) {
-        console.log('Error at fetching budget: ', e.message);
+        console.log('Error at fetching budget: ', e);
       }
     };
     if (token && month && year) fetchBudget();
-  }, [token, month, year]);
+  }, [token, month, year, refresh]);
 
   useEffect(() => {
+    if (!token || !month || !year) return;
+
     const fetchExpense = async () => {
       try {
         const response = await axios.get(`/api/budget/summary?month=${month}&year=${year}`, {
@@ -123,7 +141,7 @@ export default function ProfilePage() {
       }
     };
     if (token && month && year) fetchExpense();
-  }, [token, month, year]);
+  }, [token, month, year, refresh]);
 
   const handletoggle = (value: string) => {
     if (value === "name") {
@@ -145,10 +163,11 @@ export default function ProfilePage() {
       });
       if (response.status === 200 || response.status === 201) {
         console.log('Success at updating user: ', response);
-        setUser({ ...user, ...userInfo });
+        setUser(prev => prev ? { ...prev, ...userInfo } : prev);
         setEditName(false);
         setEditEmail(false);
         setEditPassword(false);
+        setRefresh(prev => prev + 1)
       } else {
         console.log('Failed while updating user: ', response);
       }
@@ -167,7 +186,7 @@ export default function ProfilePage() {
       if (response.status === 200 || response.status === 201) {
         console.log('Success at update budget limit: ', response);
         setEditBudgetLimit(false);
-        setTimeout(() => window.location.reload(), 500);
+        setRefresh(prev => prev + 1)
       }
     } catch (error: any) {
       console.log('Error while updating budget limit: ', error);
@@ -193,19 +212,20 @@ export default function ProfilePage() {
     "July", "August", "September", "October", "November", "December"
   ];
 
-  const years = Array.from({ length: 6 }, (_, i) => 2020 + i);
+  const years = Array.from({ length: 7 }, (_, i) => 2020 + i);
 
   const handleLimitChanges = (e: any) => {
     const { value, name } = e.target
     setLimitDetails(prev => ({
-      [name]: value,
-      ...prev
+      ...prev,
+      [name]: value
     }))
   }
 
   const handlePostLimit = async (e: any) => {
     e.preventDefault()
     try {
+      console.log('limitDetails: ', limitDetails)
       const response = await axios.post(`/api/budget/limit`, limitDetails, {
         headers: {
           Authorization: `Bearer ${token}`
@@ -213,6 +233,7 @@ export default function ProfilePage() {
       })
       if (response.status === 201) {
         setAddLimit(false)
+        setRefresh(prev => prev + 1)
       }
       else if (response.status === 409) {
         console.log(response.data.message)
@@ -415,7 +436,7 @@ export default function ProfilePage() {
                   <p className="text-sm font-medium">Current Monthly Limit</p>
                   <p className="text-[12px] flex items-center gap-1">
                     <FaCalendarAlt className="w-3 h-3 text-green-500" />
-                    {handleMonthDate(month ?? 0)} {year}
+                    {month ? handleMonthDate(month) : ""} {year}
                   </p>
                 </div>
                 <div className="flex flex-col text-end gap-1">
@@ -428,7 +449,7 @@ export default function ProfilePage() {
               <div className="relative">
                 <div className="w-full absolute h-2 rounded bg-gray-300"></div>
                 <div
-                  className={`w-[${percentage}%] relative h-2 bg-gradient-to-l rounded ${totalExpense > totalLimit
+                  className={`relative h-2 bg-gradient-to-l rounded ${totalExpense > totalLimit
                     ? "from-red-400 to-red-600"
                     : "from-green-400 to-blue-400"
                     }`}
