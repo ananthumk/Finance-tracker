@@ -1,8 +1,8 @@
 "use client"
-import { PieChart, Pie, Cell } from 'recharts'
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import type { PieLabelRenderProps } from "recharts"
 import { BiSolidCircleThreeQuarter } from "react-icons/bi";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { useToken } from '../context/UserContext';
 import Loader from './Loader';
@@ -34,26 +34,28 @@ export default function CategoryGraph({change}: {change: number}) {
 
     const { token, year, month } = useToken()
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await axios.get<ExpenseResponse>(`/api/transition/expense?month=${month}&year=${year}`,
-                    { headers: { Authorization: `Bearer ${token}` } })
-                if (response.status === 200 || response.status === 201) {
-                    console.log('success at category graph :', response)
-                    setExpense(response.data.expenses)
-                    setStatus(apiStatus.success)
-                } else {
-                    console.log('Failed Category Graph: ', response)
-                    setStatus(apiStatus.error)
-                }
-            } catch (error: any) {
-                console.log('Error at categoryGraph: ', error)
+    const fetchData = useCallback(async () => {
+        try {
+            setStatus(apiStatus.loading)
+            const response = await axios.get<ExpenseResponse>(
+                `/api/transition/expense?month=${month}&year=${year}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            )
+            if (response.status === 200 || response.status === 201) {
+                setExpense(response.data.expenses)
+                setStatus(apiStatus.success)
+            } else {
                 setStatus(apiStatus.error)
             }
+        } catch (error: any) {
+            setStatus(apiStatus.error)
         }
-        fetchData()
     }, [token, month, year, change])
+
+    useEffect(() => {
+        if (!token) return
+        fetchData()
+    }, [fetchData])
 
     const categoryValues = expenses.reduce<Record<string, number>>((acc, item) => {
         acc[item.category] = (acc[item.category] || 0) + item.amount
@@ -107,7 +109,7 @@ export default function CategoryGraph({change}: {change: number}) {
         return (
             <div className='h-full w-full flex flex-col justify-center gap-2 items-center'>
                 <p className='text-center text-lg text-gray-800 font-semibold'>Failed to Load data. Try again later.</p>
-                <button className='ml-4 px-4 py-2 cursor-pointer bg-blue-500 text-white rounded hover:bg-blue-600'>Retry</button>
+                <button onClick={fetchData} className='ml-4 px-4 py-2 cursor-pointer bg-blue-500 text-white rounded hover:bg-blue-600'>Retry</button>
             </div>
         )
     }
@@ -122,39 +124,29 @@ export default function CategoryGraph({change}: {change: number}) {
                 <p className='text-center my-auto text-lg font-semibold'>No expense data available for this month.</p>
             )}
             {status === apiStatus.success && data.length > 0 && <>
-                <PieChart className='self-center' width={250} height={250}>
-                    <Pie
-                        data={data}
-                        dataKey="value"
-                        cx='50%'
-                        cy='50%'
-                        labelLine={false}
-                        label={customizedLabels}
-                        stroke="none"
-                        strokeWidth={0}
-                        isAnimationActive={true}
-
-                    >
-                        {data.map((_, index) => (
-                            <Cell key={index} fill={colors[index % colors.length]} />
-                        ))}
-                    </Pie>
-
-                    {/* <Tooltip
-                        formatter={(value: number, name: string, props: TooltipPayload) => [
-                            `₹${value.toLocaleString()}`,
-                            `${props.payload.name}`
-                        ]}
-                        contentStyle={{
-                            backgroundColor: '#fff',
-                            borderRadius: '10px',
-                            border: '1px solid #ddd',
-                            boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.15"
-                        }}
-                    />
-                        <Legend /> */}
-
-                </PieChart>
+                <ResponsiveContainer width="100%" height={250}>
+                    <PieChart>
+                        <Pie
+                            data={data}
+                            dataKey="value"
+                            cx='50%'
+                            cy='50%'
+                            labelLine={false}
+                            label={customizedLabels}
+                            stroke="none"
+                            strokeWidth={0}
+                            isAnimationActive={true}
+                        >
+                            {data.map((_, index) => (
+                                <Cell key={index} fill={colors[index % colors.length]} />
+                            ))}
+                        </Pie>
+                        <Tooltip
+                            formatter={(value: any) => [`₹${Number(value).toLocaleString()}`, '']}
+                            contentStyle={{ backgroundColor: '#fff', borderRadius: '10px', border: '1px solid #ddd' }}
+                        />
+                    </PieChart>
+                </ResponsiveContainer>
                 <div className='grid grid-cols-1 mx-auto md:grid-cols-2 gap-3 md:gap-5'>
                     {Object.entries(categoryValues).map(([category, amount], i) => (
                         <div key={i} className='flex items-center gap-2'>

@@ -67,7 +67,13 @@ export async function PUT(req: NextRequest) {
 
     // Prepare update data
     const updatedData: Record<string, any> = {};
-    if (email) updatedData.email = email;
+    if (email) {
+      const emailExists = await User.findOne({ email, _id: { $ne: userId } });
+      if (emailExists) {
+        return NextResponse.json({ message: "Email is already in use by another account" }, { status: 409 });
+      }
+      updatedData.email = email;
+    }
     if (name) updatedData.name = name;
     if (password) updatedData.password = await bcrypt.hash(password, 10);
 

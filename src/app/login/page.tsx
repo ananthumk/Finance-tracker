@@ -23,7 +23,7 @@ export default function AuthPage() {
 
     useEffect(() => {
         if (!isLoading && token) {
-            router.replace("/dashboard")
+            router.replace("/dashBoard")
         }
     }, [isLoading, token, router])
 
@@ -41,7 +41,6 @@ export default function AuthPage() {
         setErrMsg('')
         try {
             const endpoint = isRegister ? '/api/auth/register' : '/api/auth/login';
-            console.log('Inputs: ', userDetails)
             const response = await axios.post(endpoint, userDetails)
             if (response.status === 200 || response.status === 201) {
                 setToken(response.data.token)
@@ -53,7 +52,6 @@ export default function AuthPage() {
                 setErrMsg(response.data.message)
             }
         } catch (err: any) {
-            console.log(err);
             setErrMsg(err.message)
         } finally {
             setIsSubmitting(false)

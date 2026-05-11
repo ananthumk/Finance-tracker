@@ -24,7 +24,7 @@ function syncTokenToCookie(token: string | null){
 export function AppProvider({ children }: { children: ReactNode }) {
   const [token, setIsToken] = useState<string | null>(null);
   const [month, setIsMonth] = useState<number | null>(9);
-  const [year, setIsYear] = useState<number | null>(2025);
+  const [year, setIsYear] = useState<number | null>(new Date().getFullYear());
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

@@ -37,15 +37,16 @@ interface MonthResponse {
     _id: MonthYearId
 }
 
+type TransactionState = 'loading' | 'empty' | 'error' | 'has-data'
+
 function DashBoardContent() {
     const [user, setUser] = useState<User | null>(null)
     const [addTransaction, setAddTransaction] = useState<Boolean>(false)
     const [editTranscation, setEditTransaction] = useState<Boolean>(false)
-    const [errMsg, setErrMsg] = useState('')
     const [updateId, setUpdatedId] = useState<string | null>(null)
     const [updateDetails, setUpdatedDetails] = useState(null)
     const [dates, setDates] = useState<MonthResponse[]>([])
-    const [hasTransaction, setHasTransaction] = useState<Boolean | null>(null)
+    const [transactionState, setTransactionState] = useState<TransactionState>('loading')
     const [change, hasChange] = useState(0)
 
     const { token, month, year, setMonth, setYear } = useToken()
@@ -59,15 +60,13 @@ function DashBoardContent() {
                         Authorization: `Bearer ${token}`
                     }
                 })
-                console.log('Fetch user in Dashboard', response)
                 if (response.status === 200 || response.status === 201) {
                     setUser(response.data.user)
-                    console.log('Success in fetch user in dashboard: ', response.data)
                 } else {
-                    console.log('Failed To fetch User: ', response)
+                    // Failed to fetch user
                 }
             } catch (error: any) {
-                console.log('Fetch user in Dashboard', error)
+                // Error fetching user
             }
 
         }
@@ -84,53 +83,22 @@ function DashBoardContent() {
                 })
                 if (response.status === 200 || response.status === 201) {
                     setDates(response.data)
-                    console.log('Date month: ', response)
                 } else {
-                    console.log('date month: ', response)
+                    // Failed
                 }
             } catch (error: any) {
-                console.log('Date month: ', error.message)
+                // Error
             }
         }
 
         fetchData()
     }, [token])
 
-    useEffect(() => {
-        setHasTransaction(null)
-    }, [month, year])
-
-    console.log(updateId, updateDetails)
-
-
     const handleMonthDate = (date: string) => {
-        switch (date) {
-            case "1":
-                return "January"
-            case "2":
-                return "Feburary"
-            case "3":
-                return "March"
-            case "4":
-                return "April"
-            case "5":
-                return "May"
-            case "6":
-                return "June"
-            case "7":
-                return "July"
-            case "8":
-                return "August"
-            case "9":
-                return "September"
-            case "10":
-                return "Octcber"
-            case "11":
-                return "November"
-            case "12":
-                return "December"
-        }
-    }
+        const months = ["", "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"];
+        return months[Number(date)] || "";
+    };
 
     return (
         <>
@@ -166,9 +134,10 @@ function DashBoardContent() {
 
                     </div>
                     <Summary change={change} />
-                    {hasTransaction === false && <NotTransaction setAddTransaction={setAddTransaction} />}
-
-                    {hasTransaction !== false &&
+                    
+                    {transactionState === 'empty' && <NotTransaction setAddTransaction={setAddTransaction} />}
+                    
+                    {transactionState !== 'empty' && (
                         <>
                             <Graph change={change} />
                             <Transaction
@@ -176,10 +145,12 @@ function DashBoardContent() {
                                 setUpdatedId={setUpdatedId}
                                 setUpdatedDetails={setUpdatedDetails}
                                 setEditTransaction={setEditTransaction}
-                                onDataLoaded={setHasTransaction}
+                                onDataLoaded={() => {}}
+                                onStateChange={setTransactionState}
                                 hasChange={hasChange}
                                 change={change} />
-                        </>}
+                        </>
+                    )}
                 </div>
                 <div style={{ zIndex: 1000 }} onClick={() => {
                     setAddTransaction(prev => !prev)

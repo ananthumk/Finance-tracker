@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import CategoryGraph from "./categoryGraph"
 import { FaArrowTrendUp } from "react-icons/fa6";
 import { ComposedChart, Bar, Legend, Tooltip, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts'
@@ -13,41 +13,40 @@ const apiStatus = {
     error: 'error'
 }
 
-export default function Graph({change}: {change: number}) {
+export default function Graph({ change }: { change: number }) {
     const [expenses, setExpenses] = useState<any[]>([])
     const [status, setStatus] = useState<string>(apiStatus.loading)
     const { token, month, year } = useToken()
 
-    useEffect(() => {
-        if (!token) return
-
-        const fetchData = async () => {
-            try {
-                const response = await axios.get('/api/transition/month', {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                })
-                if (response.status === 200 || response.status === 201) {
-                    setExpenses(response.data.monthlyExpenses ?? [])
-                    setStatus(apiStatus.success)
-                } else {
-                    setStatus(apiStatus.error)
+    const fetchData = useCallback(async () => {
+        try {
+            setStatus(apiStatus.loading)
+            const response = await axios.get('/api/transition/month', {
+                headers: {
+                    Authorization: `Bearer ${token}`
                 }
-            } catch (error: any) {
-                console.log('Month Limit: ', error)
+            })
+            if (response.status === 200 || response.status === 201) {
+                setExpenses(response.data.monthlyExpenses ?? [])
+                setStatus(apiStatus.success)
+            } else {
                 setStatus(apiStatus.error)
             }
+        } catch (error: any) {
+            setStatus(apiStatus.error)
         }
-
-        fetchData()
     }, [token, change, month, year])
+
+    useEffect(() => {
+        if (!token) return
+        fetchData()
+    }, [fetchData])
 
     const renderError = () => {
         return (
             <div className='h-full w-full flex flex-col justify-center items-center gap-2'>
                 <p className='text-center text-lg text-gray-800 font-semibold'>Failed to Load data. Try again later.</p>
-                <button className='ml-4 px-4 py-2 cursor-pointer bg-blue-500 text-white rounded hover:bg-blue-600'>Retry</button>
+                <button onClick={fetchData} className='ml-4 px-4 py-2 cursor-pointer bg-blue-500 text-white rounded hover:bg-blue-600'>Retry</button>
             </div>
         )
     }

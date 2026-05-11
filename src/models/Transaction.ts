@@ -7,8 +7,10 @@ const TransactionSchema = new Schema({
     category: {type: String, required: true},
     amount: {type: Number, required: true}, 
     date: {type: Date, required: true},
-    note: {type: String},
-    settings: {type: Boolean, default: false}
+    note: {type: String}
 }, {timestamps: true})
+
+TransactionSchema.index({ userId: 1, date: -1 });
+TransactionSchema.index({ userId: 1, type: 1, date: -1 });
 
 export default mongoose.models.Transaction || mongoose.model('Transaction', TransactionSchema)

@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
         }
 
         const numericLimit = typeof limit === 'string' ? Number(limit) : limit
-        
+
         // Validate limit is a positive number
         if (isNaN(numericLimit) || numericLimit <= 0) {
             return NextResponse.json({ message: 'Limit must be a positive number' }, { status: 400 })
@@ -52,13 +52,13 @@ export async function POST(req: NextRequest) {
         const formattedDate = formatDate(year, month)
 
         // Check if budget already exists for this month and year
-        const existingBudget = await Budget.findOne({ 
-            userId, 
-            month: formattedDate 
+        const existingBudget = await Budget.findOne({
+            userId,
+            month: formattedDate
         })
 
         if (existingBudget) {
-            return NextResponse.json({ 
+            return NextResponse.json({
                 message: `Budget already set for ${formattedDate}. Current limit is ${existingBudget.totalLimit}`,
                 alreadyExists: true
             }, { status: 409 }) // 409 Conflict status
@@ -74,16 +74,14 @@ export async function POST(req: NextRequest) {
             updatedAt: new Date()
         })
 
-        console.log(budget)
-
-        return NextResponse.json({ 
-            message: `Limit set to ${numericLimit} for ${formattedDate}`, 
+        return NextResponse.json({
+            message: `Limit set to ${numericLimit} for ${formattedDate}`,
             budget: budget,
             alreadyExists: false
         }, { status: 201 }) // 201 Created status
 
     } catch (error: any) {
-        console.log('POST /limit.ts: ', error.message)
+        console.error('POST /limit.ts: ', error.message)
         return NextResponse.json({ message: 'Server Error' }, { status: 500 })
     }
 }
@@ -120,7 +118,7 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({ message: `Updated budget for ${formattedDate}`, budget: budgetLimits }, { status: 200 })
 
     } catch (error: any) {
-        console.log('GET limit.ts: ', error.message)
+        console.error('GET limit.ts: ', error.message)
         return NextResponse.json({ message: "Server Error" }, { status: 500 })
     }
 }
@@ -152,11 +150,12 @@ export async function GET(req: NextRequest) {
 
 
         const budgetDetails = await Budget.find({ userId, month: formattedDate }).sort({ createdAt: -1 })
-        if (budgetDetails.length === 0) return NextResponse.json({ message: "No budget is found" }, { status: 400 })
+        if (budgetDetails.length === 0)
+            return NextResponse.json({ budget: null, message: "No budget found" }, { status: 200 })
 
         return NextResponse.json({ budget: budgetDetails }, { status: 200 })
     } catch (error: any) {
-        console.log('GET limit.ts: ', error.message)
+        console.error('GET limit.ts: ', error.message)
         return NextResponse.json({ message: "Server Error" }, { status: 500 })
     }
 }

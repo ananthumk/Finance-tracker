@@ -1,8 +1,8 @@
 "use client"
 import axios from "axios";
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { IoCloseSharp } from "react-icons/io5";
-import { AppProvider, useToken } from "../context/UserContext";
+import { useToken } from "../context/UserContext";
 
 interface INfo {
    type: string,
@@ -63,8 +63,8 @@ export default function AddTransaction({ hasChange, setAddTransaction }: { hasCh
 
    const handleSubmit = async (e: any) => {
       e.preventDefault()
-      if (!info.type || !info.amount || !info.category || !info.date) {
-         setErrMsg('All fields are required')
+      if (!info.type || !info.amount || !info.category || !info.category.trim() || !info.date) {
+         setErrMsg('All fields are required including category')
          return
       }
       if (Number(info.amount) <= 0) {
@@ -85,7 +85,6 @@ export default function AddTransaction({ hasChange, setAddTransaction }: { hasCh
             setSuccessMsg('')
          }
       } catch (error: any) {
-         console.log('Error at adding transaction: ', error.message)
          setSuccessMsg('')
          setErrMsg(error.message)
       }
@@ -113,8 +112,9 @@ export default function AddTransaction({ hasChange, setAddTransaction }: { hasCh
                </div>
                <div className="flex flex-col gap-1">
                   <label htmlFor="category" className="text-[13px] text-gray-500">Category</label>
-                  <select name="category" onChange={handleChanges} id="category" className="w-full py-1.5 px-4 text-[12px] rounded-sm border-1 border-gray-200 outline-0">
-                     <option value="text-[12px] py-0.5 px-4" disabled>
+                  <select name="category" onChange={handleChanges} id="category"
+                     className="w-full py-1.5 px-4 text-[12px] rounded-sm border-1 border-gray-200 outline-0">
+                     <option value="" disabled>
                         Select Category
                      </option>
                      {categoriesOption.map((cat) => (

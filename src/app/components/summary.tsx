@@ -21,7 +21,6 @@ interface SummaryResponse {
 export default function Summary({change}: {change: number}) {
     const [summary, setSummary] = useState<Summary | null>(null)
     const {token, year, month} = useToken()
-    console.log(month, year)
     // const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
     useEffect(() => {
         const fetchData = async () => {
@@ -30,12 +29,11 @@ export default function Summary({change}: {change: number}) {
                 const response = await axios.get<SummaryResponse>(`/api/budget/summary?month=${month}&year=${year}`, {headers: {Authorization: `Bearer ${token}`}})
                 if(response.status === 200 || response.status === 201){
                      setSummary(response.data.summary)
-                     console.log('Fetch Summary success: ', response.data)
                 }else{
-                    console.log('Failed to summary: ', response.data)
+                    // Failed
                 }
             } catch (error) {
-                console.log('Error on summary: ', error)
+                // Error
             }
         }
         fetchData()

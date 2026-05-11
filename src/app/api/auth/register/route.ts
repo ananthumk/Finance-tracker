@@ -17,6 +17,19 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: "All input details are required!" }, { status: 400 });
         }
 
+        if (name.trim().length < 2) {
+            return NextResponse.json({ message: "Name must be at least 2 characters" }, { status: 400 });
+        }
+
+        if (password.length < 8) {
+            return NextResponse.json({ message: "Password must be at least 8 characters" }, { status: 400 });
+        }
+
+        const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRe.test(email)) {
+            return NextResponse.json({ message: "Invalid email address" }, { status: 400 });
+        }
+
         // existing user
         const existingUser = await User.findOne({ email });
         if (existingUser) {

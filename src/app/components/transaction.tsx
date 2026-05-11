@@ -9,11 +9,11 @@ import { IoSchool } from "react-icons/io5";
 import { FaHouse, FaMoneyBills } from "react-icons/fa6";
 import { IoMdClose } from "react-icons/io";
 import { useToken } from "../context/UserContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import { ChevronRight, ChevronLeft } from 'lucide-react';
-import { ColorRing } from "react-loader-spinner";
+import Loader from "./Loader";
 
 const apiStatus = {
   loading: 'loading',
@@ -22,18 +22,18 @@ const apiStatus = {
 }
 
 const colors = [
-  "#FF6B6B", 
-  "#4ECDC4", 
-  "#45B7D1", 
-  "#96CEB4", 
-  "#FFEAA7", 
-  "#DDA0DD", 
-  "#98D8C8", 
-  "#F7DC6F", 
-  "#BB8FCE", 
-  "#F8C471", 
-  "#82CCDD", 
-  "#F1948A" 
+  "#FF6B6B",
+  "#4ECDC4",
+  "#45B7D1",
+  "#96CEB4",
+  "#FFEAA7",
+  "#DDA0DD",
+  "#98D8C8",
+  "#F7DC6F",
+  "#BB8FCE",
+  "#F8C471",
+  "#82CCDD",
+  "#F1948A"
 ];
 
 interface Transaction {
@@ -63,11 +63,13 @@ interface TransactionResponse {
   pagination: Pagination;
 }
 
-export default function Transaction({ setAddTransaction, setUpdatedId, setUpdatedDetails, setEditTransaction, onDataLoaded,
-   hasChange, change }: 
-  { setAddTransaction: (value: boolean) => void, setUpdatedId: (id: string) => void, setUpdatedDetails: (details: any) => void,
-    setEditTransaction: (value: boolean) => void, onDataLoaded: (hasTransaction: boolean) => void,
-     hasChange: React.Dispatch<React.SetStateAction<number>>, change: number }) {
+export default function Transaction({ setAddTransaction, setUpdatedId, setUpdatedDetails, setEditTransaction, onDataLoaded, onStateChange,
+  hasChange, change }:
+  {
+    setAddTransaction: (value: boolean) => void, setUpdatedId: (id: string) => void, setUpdatedDetails: (details: any) => void,
+    setEditTransaction: (value: boolean) => void, onDataLoaded: (hasTransaction: boolean) => void, onStateChange?: (state: 'loading' | 'empty' | 'error' | 'has-data') => void,
+    hasChange: React.Dispatch<React.SetStateAction<number>>, change: number
+  }) {
   const [transaction, setTransaction] = useState<Transaction[]>([])
   const [openSettingsId, setOpenSettingsId] = useState<string | null>(null)
   const [status, setStatus] = useState(apiStatus.loading)
@@ -85,38 +87,50 @@ export default function Transaction({ setAddTransaction, setUpdatedId, setUpdate
   const [searchValue, setSearchValue] = useState('')
   const { token, year, month } = useToken()
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setStatus(apiStatus.loading)
-      const response = await axios.get<TransactionResponse>(`/api/icome/all?month=${month}&year=${year}&page=${page}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      console.log(response)
+      onStateChange?.('loading')
+      const response = await axios.get<TransactionResponse>(
+        `/api/icome/all?month=${month}&year=${year}&page=${page}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
       if (response.status === 200 || response.status === 201) {
-        console.log('response: ', response.data)
         const updatedTransactions = response.data.transactions.map((t: any) => ({
           ...t,
           settings: false
         }))
-        console.log('update transcation: ', updatedTransactions)
         setTransaction(updatedTransactions)
         setPagination(response.data.pagination)
         setStatus(apiStatus.success)
         onDataLoaded(response.data.pagination.totalItems > 0)
+        
+        // Update parent state based on data availability
+        if (response.data.pagination.totalItems > 0) {
+          onStateChange?.('has-data')
+        } else {
+          onStateChange?.('empty')
+        }
       } else {
         setStatus(apiStatus.error)
-        console.log(response)
+        onStateChange?.('error')
       }
     } catch (error: any) {
-      console.log('Error on transaction.tsx: ', error.message)
       setStatus(apiStatus.error)
+      onStateChange?.('error')
     }
-  }
+  }, [token, month, year, page, onStateChange, change])
+
+  useEffect(() => {
+    if (!token) return
+    // Reset page to 1 when transaction changes
+    setPage(1)
+  }, [change, token])
 
   useEffect(() => {
     if (!token) return
     fetchData()
-  }, [token, month, page, year, change])
+  }, [fetchData])
 
   useEffect(() => {
     const filtered = transaction.filter((item: any) =>
@@ -160,7 +174,6 @@ export default function Transaction({ setAddTransaction, setUpdatedId, setUpdate
         toast.error("Failed to delete the transaction")
       }
     } catch (error: any) {
-      console.log('While Deleting transaction: ', error.message)
       toast.error("Failed to delete the transaction")
     }
   }
@@ -214,8 +227,8 @@ export default function Transaction({ setAddTransaction, setUpdatedId, setUpdate
             onChange={(e) => setType(e.target.value)}
             className="py-1.5 outline-0 text-[13px] font-medium rounded-sm px-3 border border-gray-500">
             <option value="">All</option>
-            <option value="INCOME">INCOME</option>
-            <option value="EXPENSE">EXPENSE</option>
+            <option value="income">INCOME</option>
+            <option value="expense">EXPENSE</option>
           </select>
         </div>
       </div>
@@ -224,11 +237,7 @@ export default function Transaction({ setAddTransaction, setUpdatedId, setUpdate
         <p className="text-[13px] text-gray-500">Result Showing {pagination?.text}</p>
       </div>
 
-      {status === apiStatus.loading && (
-        <div className="flex justify-center py-10">
-          <ColorRing visible={true} height="60" width="60" />
-        </div>
-      )}
+      {status === apiStatus.loading && <Loader />}
 
       {status === apiStatus.error && renderFailure()}
 

@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useToken } from "../context/UserContext";
 import { X, Plus } from 'lucide-react';
+import ProtectedRoute from "../components/ProtectedRoute";
 
 interface User {
   name: string;
@@ -45,9 +46,7 @@ type BudgetDetails = {
   limit: string;
 };
 
-
-
-export default function ProfilePage() {
+function ProfileContent() {
   const [user, setUser] = useState<User | null>(null);
   const [userInfo, setUserInfo] = useState<User>({ name: '', email: '', password: '' });
   const [budgetInfo, setBudgetInfo] = useState<BudgetInfo | null>(null);
@@ -61,7 +60,7 @@ export default function ProfilePage() {
   const [addLimit, setAddLimit] = useState<boolean>(false)
 
   const router = useRouter();
-  const { token, month, year } = useToken();
+  const { token, month, year, setToken } = useToken();
   const [budgetDetails, setBudgetDetails] = useState<BudgetDetails>({ month: '', limit: '', year: '' });
 
   const [limitDetails, setLimitDetails] = useState<BudgetDetails>({ month: '', year: '', limit: '' });
@@ -71,10 +70,10 @@ export default function ProfilePage() {
   };
 
   useEffect(() => {
-    if(!month || !year) return 
-    setBudgetDetails({ month: String(month), year: String(year) , limit: '' });
+    if (!month || !year) return
+    setBudgetDetails({ month: String(month), year: String(year), limit: '' });
   }, [month, year]);
-  
+
   useEffect(() => {
     if (user?.name && user?.email) {
       setUserInfo({ name: user.name, email: user.email, password: '' });
@@ -89,13 +88,12 @@ export default function ProfilePage() {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (response.status === 200 || response.status === 201) {
-          console.log('Success at fetching user at profile: ', response.data);
           setUser(response.data.user);
         } else {
-          console.log('Failed to fetch user at profile: ', response.data);
+          // Failed
         }
       } catch (error) {
-        console.log('Error at fetch user in profile: ', error);
+        // Error fetching user
       }
     };
     if (token) fetchData();
@@ -110,13 +108,12 @@ export default function ProfilePage() {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (response.status === 200 || response.status === 201) {
-          console.log('Success at fetching budget: ', response.data);
           setBudgetInfo(response.data.budget[0]);
         } else {
-          console.log('Failed at fetching budget: ', response.data);
+          // Failed to fetch
         }
       } catch (e: any) {
-        console.log('Error at fetching budget: ', e);
+        // Error
       }
     };
     if (token && month && year) fetchBudget();
@@ -131,13 +128,12 @@ export default function ProfilePage() {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (response.status === 200 || response.status === 201) {
-          console.log('budget summary: ', response);
           setExpense(response.data.summary);
         } else {
-          console.log('Failed on fetching expense: ', response.data);
+          // Failed
         }
       } catch (error: any) {
-        console.log(`Error while fetching Expense: `, error.message);
+        // Error
       }
     };
     if (token && month && year) fetchExpense();
@@ -162,20 +158,23 @@ export default function ProfilePage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.status === 200 || response.status === 201) {
-        console.log('Success at updating user: ', response);
         setUser(prev => prev ? { ...prev, ...userInfo } : prev);
         setEditName(false);
         setEditEmail(false);
         setEditPassword(false);
         setRefresh(prev => prev + 1)
       } else {
-        console.log('Failed while updating user: ', response);
+        // Failed
       }
     } catch (error: any) {
-      console.log('Error while updating user: ', error);
+      // Error
     }
   };
 
+  const handleLogout = () => {
+    setToken(null);
+    router.replace('/login');
+  }
 
   const updateBudgetLimit = async (e: any) => {
     e.preventDefault();
@@ -184,12 +183,11 @@ export default function ProfilePage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.status === 200 || response.status === 201) {
-        console.log('Success at update budget limit: ', response);
         setEditBudgetLimit(false);
         setRefresh(prev => prev + 1)
       }
     } catch (error: any) {
-      console.log('Error while updating budget limit: ', error);
+      // Error
     }
   };
 
@@ -225,7 +223,6 @@ export default function ProfilePage() {
   const handlePostLimit = async (e: any) => {
     e.preventDefault()
     try {
-      console.log('limitDetails: ', limitDetails)
       const response = await axios.post(`/api/budget/limit`, limitDetails, {
         headers: {
           Authorization: `Bearer ${token}`
@@ -236,10 +233,10 @@ export default function ProfilePage() {
         setRefresh(prev => prev + 1)
       }
       else if (response.status === 409) {
-        console.log(response.data.message)
+        // Budget already exists
       }
     } catch (error) {
-      console.log(error)
+      // Error setting limit
     }
   }
 
@@ -441,7 +438,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="flex flex-col text-end gap-1">
                   <h2 className="text-lg font-bold text-green-600">₹{budgetInfo?.totalLimit || 0}</h2>
-                  <p className="text-[13px] text-green-600">+12% from last month</p>
+                  <p className="text-[13px] text-green-600">Budget set for this month</p>
                 </div>
               </div>
 
@@ -550,10 +547,18 @@ export default function ProfilePage() {
       </div>
 
       <div className="w-full flex justify-center items-center pb-6 md:pb-8">
-        <button className="max-w-[300px] rounded cursor-pointer py-2 px-6 text-[15px] hover:shadow-lg hover:shadow-red-500/50 font-semibold text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 flex justify-center items-center gap-2 transition-all duration-200">
+        <button onClick={handleLogout} className="max-w-[300px] rounded cursor-pointer py-2 px-6 text-[15px] hover:shadow-lg hover:shadow-red-500/50 font-semibold text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 flex justify-center items-center gap-2 transition-all duration-200">
           <IoLogOutSharp className="w-4 h-4" /> Logout from Account
         </button>
       </div>
     </div>
   );
+}
+
+export default function ProfilePage() {
+  return (
+    <ProtectedRoute>
+      <ProfileContent />
+    </ProtectedRoute>
+  )
 }

@@ -1,9 +1,9 @@
 "use client"
 
 import axios from "axios";
-import { useContext, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { IoCloseSharp } from "react-icons/io5";
-import { AppProvider, useToken } from "../context/UserContext";
+import { useToken } from "../context/UserContext";
 
 const income_category = [
     "Salary",
@@ -79,7 +79,6 @@ export default function UpdateTransaction({ hasChange, updateDetails, updateId, 
                 setSuccessMsg('')
             }
         } catch (error: any) {
-            console.log('Error at updating transcation: ', error.message)
             setErrMsg(error.message)
         }
     }
@@ -111,7 +110,7 @@ export default function UpdateTransaction({ hasChange, updateDetails, updateId, 
                     <div className="flex flex-col gap-1">
                         <label htmlFor="category" className="text-[13px] text-gray-500">Category</label>
                         <select name="category" onChange={handleChange} value={details?.category} id="category" className="w-full py-1.5 px-4 text-[12px] rounded-sm border-1 border-gray-200 outline-0">
-                            <option value="text-[12px] py-0.5 px-4" disabled>
+                            <option value="" disabled>
                                 Select Category
                             </option>
                             {categoriesOptions.map((cat) => (
@@ -127,7 +126,14 @@ export default function UpdateTransaction({ hasChange, updateDetails, updateId, 
                     </div>
                     <div className="flex flex-col gap-1">
                         <label htmlFor="date" className="text-[13px] text-gray-500">Date</label>
-                        <input name="date" onChange={handleChange} value={details?.date} id="date" type="date" className="w-full py-1.5 px-4 text-[12px] rounded-sm border-1 border-gray-200 outline-0" placeholder="Enter your amount" />
+                        <input
+                            name="date"
+                            onChange={handleChange}
+                            value={details?.date ? details.date.substring(0, 10) : ''}
+                            id="date"
+                            type="date"
+                            className="w-full py-1.5 px-4 text-[12px] rounded-sm border-1 border-gray-200 outline-0"
+                        />
                     </div>
                     <div className="grid grid-cols-2 gap-10">
                         <button type="submit" className="py-1.5 md:py-2 px-4 rounded-sm cursor-pointer bg-blue-500 text-white text-md">
