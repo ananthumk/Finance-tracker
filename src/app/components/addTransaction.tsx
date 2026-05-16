@@ -50,6 +50,7 @@ export default function AddTransaction({ hasChange, setAddTransaction }: { hasCh
    const [successMsg, setSuccessMsg] = useState('')
    const [errMsg, setErrMsg] = useState('')
 
+   const { token, setMonth, setYear } = useToken()
 
    const handleChanges = (e: any) => {
       const { name, value } = e.target
@@ -58,8 +59,6 @@ export default function AddTransaction({ hasChange, setAddTransaction }: { hasCh
          [name]: value
       }))
    }
-
-   const { token } = useToken()
 
    const handleSubmit = async (e: any) => {
       e.preventDefault()
@@ -74,12 +73,19 @@ export default function AddTransaction({ hasChange, setAddTransaction }: { hasCh
       try {
          const response = await axios.post('/api/icome/add', info, { headers: { Authorization: `Bearer ${token}` } })
          if (response.status === 200 || response.status === 201) {
+            // Sync dashboard to the exact month/year of the transaction just added
+            // This ensures the Transaction component refetches for the correct month
+            if (info.date) {
+               const submittedDate = new Date(info.date)
+               setMonth(submittedDate.getMonth() + 1)
+               setYear(submittedDate.getFullYear())
+            }
             setSuccessMsg('Transaction Added Successfully')
             setErrMsg('')
+            hasChange(prev => prev + 1)
             setTimeout(() => {
                setAddTransaction(false)
             }, 2000)
-            hasChange(prev => prev + 1)
          } else {
             setErrMsg(response.data.message)
             setSuccessMsg('')

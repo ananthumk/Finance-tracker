@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json(transactionMonth, { status: 200 })
     } catch (error: any) {
-        console.log('/month/api', error.message)
+        console.error('/month/api', error.message)
         return NextResponse.json({ message: 'Server Error' }, { status: 500 })
     }
 } 

@@ -23,7 +23,7 @@ function syncTokenToCookie(token: string | null){
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [token, setIsToken] = useState<string | null>(null);
-  const [month, setIsMonth] = useState<number | null>(9);
+  const [month, setIsMonth] = useState<number | null>(new Date().getMonth() + 1);
   const [year, setIsYear] = useState<number | null>(new Date().getFullYear());
   const [isLoading, setIsLoading] = useState(true);
 
@@ -51,6 +51,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("token", newToken);
     } else {
       localStorage.removeItem("token");
+      
+      localStorage.removeItem("month");
+      localStorage.removeItem("year");
     }
 
     syncTokenToCookie(newToken)

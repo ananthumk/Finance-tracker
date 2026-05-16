@@ -41,8 +41,8 @@ type TransactionState = 'loading' | 'empty' | 'error' | 'has-data'
 
 function DashBoardContent() {
     const [user, setUser] = useState<User | null>(null)
-    const [addTransaction, setAddTransaction] = useState<Boolean>(false)
-    const [editTranscation, setEditTransaction] = useState<Boolean>(false)
+    const [addTransaction, setAddTransaction] = useState<boolean>(false)
+    const [editTranscation, setEditTransaction] = useState<boolean>(false)
     const [updateId, setUpdatedId] = useState<string | null>(null)
     const [updateDetails, setUpdatedDetails] = useState(null)
     const [dates, setDates] = useState<MonthResponse[]>([])
@@ -92,7 +92,7 @@ function DashBoardContent() {
         }
 
         fetchData()
-    }, [token])
+    }, [token, change])
 
     const handleMonthDate = (date: string) => {
         const months = ["", "January", "February", "March", "April", "May", "June",
@@ -135,22 +135,26 @@ function DashBoardContent() {
                     </div>
                     <Summary change={change} />
                     
-                    {transactionState === 'empty' && <NotTransaction setAddTransaction={setAddTransaction} />}
-                    
-                    {transactionState !== 'empty' && (
-                        <>
-                            <Graph change={change} />
-                            <Transaction
-                                setAddTransaction={setAddTransaction}
-                                setUpdatedId={setUpdatedId}
-                                setUpdatedDetails={setUpdatedDetails}
-                                setEditTransaction={setEditTransaction}
-                                onDataLoaded={() => {}}
-                                onStateChange={setTransactionState}
-                                hasChange={hasChange}
-                                change={change} />
-                        </>
+                    {transactionState === 'empty' && (
+                        <NotTransaction setAddTransaction={setAddTransaction} />
                     )}
+
+                    {transactionState === 'has-data' && (
+                        <Graph change={change} />
+                    )}
+
+                    <div className={transactionState === 'empty' ? 'hidden' : ''}>
+                        <Transaction
+                            setAddTransaction={setAddTransaction}
+                            setUpdatedId={setUpdatedId}
+                            setUpdatedDetails={setUpdatedDetails}
+                            setEditTransaction={setEditTransaction}
+                            onDataLoaded={() => {}}
+                            onStateChange={setTransactionState}
+                            hasChange={hasChange}
+                            change={change}
+                        />
+                    </div>
                 </div>
                 <div style={{ zIndex: 1000 }} onClick={() => {
                     setAddTransaction(prev => !prev)

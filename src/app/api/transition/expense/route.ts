@@ -35,7 +35,7 @@ export async function GET(req: NextRequest){
 
         return NextResponse.json({expenses}, {status: 200})
     } catch (error: any) {
-        console.log('Error on transition/expense: ', error.message)
+        console.error('Error on transition/expense: ', error.message)
         return NextResponse.json({message: 'Something went wrong! Try again later'}, {status: 500})
     }
 }

@@ -10,16 +10,14 @@ interface User {
 }
 
 export default function Navbar({user}: {user: User | null}){
-    const [showPopup, setShowPopup] = useState<Boolean>(false)
+    const [showPopup, setShowPopup] = useState<boolean>(false)
 
     const { setToken } = useToken()
     const router = useRouter()
 
     const handleLogout = () => {
-        console.log('Logging out...')
         setToken(null)
-        localStorage.removeItem("token")
-        router.push('/login')
+        router.replace('/login')
     }
 
     return(

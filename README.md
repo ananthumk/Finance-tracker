@@ -1,103 +1,35 @@
 # Finance Tracker
 
-A comprehensive full-stack personal finance management application built with **Next.js 16**, **MongoDB**, and **React**. Track your income, expenses, manage budgets, and visualize your financial data with beautiful charts and graphs.
+A full-stack personal finance app built with **Next.js 16**, **MongoDB**, **React 19**, and **TypeScript**. Securely manage income, expenses, budgets, and visualize financial data.
 
----
+## Key Features
 
-## Features
-
-- **User Authentication** - Secure registration and login with JWT tokens
-- **Income & Expense Tracking** - Add, update, and delete transactions with categories
-- **Monthly Reports** - View detailed income and expense summaries by month
-- **Budget Management** - Set spending limits and track against budget
-- **Data Visualization** - Interactive charts and graphs using Chart.js and Recharts
-- **Category-wise Analytics** - Analyze spending patterns by category
-- **Protected Routes** - User-specific data with role-based access control
-- **Responsive Design** - Work seamlessly on desktop and mobile devices
-
----
+- **Authentication**: JWT-based secure login/registration with bcrypt hashing
+- **Transaction Management**: Add, edit, delete income/expense transactions with categories
+- **Monthly Analytics**: View summaries by month with automatic pagination
+- **Budget Tracking**: Set limits and monitor spending against budgets
+- **Data Visualization**: Interactive charts using Chart.js and Recharts
+- **Category Analytics**: Analyze spending patterns by category
+- **Protected Routes**: Role-based access control for user data
+- **Responsive Design**: Mobile-friendly interface with Tailwind CSS
 
 ## Tech Stack
 
-**Frontend:**
-- Next.js 16 with TypeScript
-- React 19
-- Tailwind CSS 4
-- Chart.js & Recharts (Data visualization)
-- React Icons & Lucide React (UI icons)
-- SWR (Data fetching & caching)
-- Axios (HTTP client)
+**Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS 4, Recharts  
+**Backend**: Next.js API Routes, MongoDB + Mongoose, JWT, bcrypt  
+**UI**: React Icons, Lucide React, Axios
 
-**Backend:**
-- Next.js API Routes
-- MongoDB with Mongoose ODM
-- JWT Authentication
-- bcrypt (Password hashing)
+## Quick Start
 
-**Tools:**
-- Node.js
-- ESLint (Code quality)
-- PostCSS
-
----
-
-## Installation
-
-### Prerequisites
-- Node.js 18+ installed
-- MongoDB instance running (local or cloud)
-- npm or yarn package manager
-
-### Setup Steps
-
-1. **Clone the repository**
-```bash
-cd finance-app
-```
-
-2. **Install dependencies**
-```bash
-npm install
-```
-
-3. **Create environment variables**
-Create a `.env.local` file in the project root:
-```env
-MONGODB_URI=mongodb://your_mongodb_connection_string (local or atlas)
-JWT_SECRET=your_jwt_secret_key
-NEXT_PUBLIC_API_URL=http://localhost:3000
-```
-
-4. **Run the development server**
-```bash
-npm run dev
-```
-
-5. **Access the application**
-Open [http://localhost:3000](http://localhost:3000) in your browser
-
----
-
-## Project Structure
+1. `npm install` - Install dependencies
+2. Create `.env.local` with `MONGODB_URI` and `JWT_SECRET`
+3. `npm run dev` - Start development server at http://localhost:3000
 
 ```
-finance-app/
-├── src/
-│   ├── app/
-│   │   ├── api/                    # API Routes
-│   │   │   ├── auth/              # Authentication endpoints
-│   │   │   ├── budget/            # Budget management
-│   │   │   ├── icome/             # Income transactions
-│   │   │   ├── transition/        # Transaction endpoints
-│   │   │   └── month/             # Monthly reports
-│   │   ├── components/            # React components
-│   │   ├── dashBoard/             # Dashboard page
-│   │   ├── login/                 # Login page
-│   │   ├── profile/               # User profile
-│   │   ├── context/               # React context (UserContext)
-│   │   └── globals.css
-│   ├── lib/                       # Utility functions
-│   │   ├── auth.ts               # JWT token management
+src/app/ → components, pages, context (UserContext), API routes
+src/lib/ → auth utilities, MongoDB connection
+src/models/ → User, Transaction, Budget schemas
+```
 │   │   └── mongoose.ts           # MongoDB connection
 │   └── models/                    # Database models
 │       ├── User.ts

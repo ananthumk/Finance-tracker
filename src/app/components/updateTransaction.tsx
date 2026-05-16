@@ -129,7 +129,7 @@ export default function UpdateTransaction({ hasChange, updateDetails, updateId, 
                         <input
                             name="date"
                             onChange={handleChange}
-                            value={details?.date ? details.date.substring(0, 10) : ''}
+                            value={details?.date ? String(details.date).substring(0, 10) : ''}
                             id="date"
                             type="date"
                             className="w-full py-1.5 px-4 text-[12px] rounded-sm border-1 border-gray-200 outline-0"

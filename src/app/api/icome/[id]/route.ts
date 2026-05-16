@@ -29,7 +29,7 @@ export async function DELETE(req: NextRequest, {params} : {params: Promise<{id: 
       return NextResponse.json({message: 'Transaction deleted'}, {status: 200})
       
    } catch (error: any) {
-      console.log('/income-delete-[id].ts', error.message)
+      console.error('/income-delete-[id].ts', error.message)
       return NextResponse.json({message: 'Server Error'}, {status: 500})
    }
 }
@@ -86,12 +86,12 @@ export async function PUT(req: NextRequest, {params}: {params: Promise<{id: stri
         {new: true}
       )
 
-      if(!updatedTs) return NextResponse.json({message: 'Transcation not found'}, {status: 400})
+      if(!updatedTs) return NextResponse.json({message: 'Transaction not found'}, {status: 404})
     
       return NextResponse.json({message:'Updated successfully', transaction: updatedTs}, {status: 200})
         
     } catch (error: any) {
-        console.log('ivome-update-[id].ts: ', error.message)
+        console.error('icome-update-[id].ts: ', error.message)
         return NextResponse.json({message: 'Server Error'}, {status: 500})
     }
 }

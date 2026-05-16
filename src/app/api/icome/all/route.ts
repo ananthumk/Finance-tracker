@@ -32,10 +32,7 @@ export async function GET(req: NextRequest){
         const year = yearParam ? parseInt(yearParam) : now.getFullYear()
         const startDate = new Date(year, month, 1)
         const endDate = new Date(year, month + 1, 0, 23, 59, 59, 999)
-        console.log('startDate: ', startDate);
-        console.log('endDate: ', endDate);
 
-        
         const transactions = await Transaction.find({ userId, date: {$gte: startDate, $lte: endDate}}).sort({ date: -1 })
         .skip(skip).limit(limit);
 
@@ -45,8 +42,6 @@ export async function GET(req: NextRequest){
         
         const itemsShownSoFar = Math.min(skip + transactions.length, total)
         const displayText = `${itemsShownSoFar} out of ${total}`
-
-        console.log('transaction all success: ', transactions.length);
         
         return NextResponse.json({ transactions, pagination: {
          totalItems: total,

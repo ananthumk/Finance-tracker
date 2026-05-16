@@ -243,9 +243,23 @@ export default function Transaction({ setAddTransaction, setUpdatedId, setUpdate
 
       {status === apiStatus.success && transaction.length === 0 && renderNoTransaction()}
 
-      {status === apiStatus.success && transaction.length > 0 && (
+      {status === apiStatus.success && transaction.length > 0 && (() => {
+    const isFiltering = searchValue.trim() !== '' || type !== ''
+    const displayed = isFiltering ? filterTransaction : transaction
+    return (
+      <>
+        {isFiltering && filterTransaction.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-10">
+            <p className="text-gray-500">No transactions match your search.</p>
+            <button
+              onClick={() => { setSearchValue(''); setType('') }}
+              className="mt-3 text-sm text-blue-500 hover:underline cursor-pointer">
+              Clear filters
+            </button>
+          </div>
+        )}
         <div className="flex flex-col gap-2">
-          {(filterTransaction.length > 0 ? filterTransaction : transaction)?.map((item, i) => (
+          {displayed.map((item, i) => (
             <div key={item._id} className="group flex items-center justify-between p-3 bg-white rounded-md shadow-sm">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-full" style={{ backgroundColor: colors[i % colors.length] }}>
@@ -291,8 +305,11 @@ export default function Transaction({ setAddTransaction, setUpdatedId, setUpdate
             </div>
           ))}
         </div>
-      )}
+      </>
+    )
+  })()}
 
+      {pagination.totalPages > 1 && (
       <div className="flex items-center justify-center gap-3 mt-4">
         <button
           onClick={() => setPage(prev => Math.max(prev - 1, 1))}
@@ -308,6 +325,7 @@ export default function Transaction({ setAddTransaction, setUpdatedId, setUpdate
           <ChevronRight size={16} />
         </button>
       </div>
+      )}
     </div>
   )
 }
